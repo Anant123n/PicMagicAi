@@ -2,6 +2,9 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv/config';
 import cors from 'cors';
+import userRoutes from './routes/userRoutes.js';
+
+
 
 import connectDB from './config/mongodb.js';
 
@@ -19,6 +22,8 @@ connectDB();
 app.get('/', (req, res) => {
     res.send('API is running...');
 });
+
+app.use('/api/users', userRoutes);
 
 // Start server
 app.listen(PORT, () => {
