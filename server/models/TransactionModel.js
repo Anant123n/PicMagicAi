@@ -1,11 +1,13 @@
 
 import mongoose from "mongoose";
 
-const userSchema= new mongoose.Schema({
-    name:{type:String, required:true},
-    email:{type:String, required:true, unique:true},
-    password:{type:String, required:true},
-    credit:{type:Number, default:5},
+const transactionSchema= new mongoose.Schema({
+    userid:{type:String, required:true},
+    plan:{type:String, required:true, unique:true},
+    amount:{type:Number, required:true},
+    credit:{type:Number, required:true},
+    payment:{type:Boolean, required:fasle},
+    date:{type:Date, default:Date.now}
     
 })
 
