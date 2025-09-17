@@ -92,5 +92,25 @@ const loginUser=async (req,res)=>{
     
     }
 
+const creditUser=async (req,res)=>{
+    try{
+        const {Userid}=req.body;  
+        
+        const User=await userModel.findById(Userid);
+        res.json({success:true,message:"User Credited Successfully",credits:User.credit,user:{name:User.name}});
 
-export {registerUser,loginUser};
+
+     }
+
+        catch(error){
+        console.log(error);
+        res.status(500).json({success:false,message:"Error in Crediting User"});   
+        }     
+    
+    
+    
+    
+    }
+
+
+export {registerUser,loginUser,creditUser};
