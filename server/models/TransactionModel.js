@@ -12,6 +12,6 @@ const transactionSchema= new mongoose.Schema({
 })
 
 const userModel= mongoose.model.user|| mongoose.model('user', userSchema) ;
-jnj
 
-export default userModel;b
+
+export default userModel;
