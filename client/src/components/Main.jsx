@@ -11,7 +11,7 @@ const Header = () => {
 
   const navigate = useNavigate()
 
-  let user=1
+  
 
   const GenPic = () => {
     if (user) {
