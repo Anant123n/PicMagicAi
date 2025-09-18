@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv/config';
 import cors from 'cors';
 import userRoutes from './routes/userRoutes.js';
+import imageRoutes from './routes/imageRoutes.js';
 
 
 
@@ -24,6 +25,10 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/users', userRoutes);
+app.use('/api/image', imageRoutes);
+
+
+
 
 // Start server
 app.listen(PORT, () => {

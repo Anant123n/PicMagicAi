@@ -75,7 +75,7 @@ const loginUser=async (req,res)=>{
             return res.status(400).json({success:false,message:"Invalid Credentials"});
         }   
 
-        const token=jwt.sign({id:user.id},process.env.JWT_SECRET);
+        const token=jwt.sign({id:user._id},process.env.JWT_SECRET);
         res.status(200).json({success:true,message:"User Logged In Successfully",data:{user,token}});
     
     }
@@ -97,7 +97,14 @@ const creditUser=async (req,res)=>{
         const {Userid}=req.body;  
         
         const User=await userModel.findById(Userid);
-        res.json({success:true,message:"User Credited Successfully",credits:User.credit,user:{name:User.name}});
+
+        if(!User){
+            return res.json({success:false,message:"User not found"});
+        }
+
+
+
+        res.json({success:true,message:"User Credited Successfully",credits:User.credit,  user:{name:User.name}});
 
 
      }
