@@ -5,14 +5,19 @@ import BuyCredit from './pages/BuyCredit.jsx'
 import Result from './pages/Result.jsx' 
 import Footer from './components/Footer.jsx'
 import Navbar from './components/Navbar.jsx'
+import Login from './components/Login.jsx'
+import { useContext } from 'react'
+import { AppContext } from './context/AppContext.jsx' 
 
 
 
 function App() {
-  const [count, setCount] = useState(0)
+
+  const {showLogin}=useContext(AppContext)
 
   return (
    <div className='  min-h-screen bg-gradient-to-b from-gray-500 to-violet-900'>
+    {showLogin && <Login/>}
 
     <Navbar/>
 
@@ -21,6 +26,9 @@ function App() {
       <Route path='/' element={<Home/>}/>
       <Route path='/buy' element={<BuyCredit/>}/>
       <Route path='/result' element={<Result/>}/>
+      <Route path='/login' element={<Login/>}/>
+      
+
 
     </Routes>
 
