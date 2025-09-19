@@ -132,14 +132,94 @@ const paymentRazorpay=async (req,res)=>{
             return res.status(404).json({success:false,message:"User not found"});
         }
 
-        
+        let amount,credit,plan,data;
+
+        switch(planId){
+            case 'Basic' :
+                plan="Basic";
+                amount=10;
+                credit=15;
+                break;
+
+            case 'Advanced' :
+                plan="Advanced";
+                amount=30;
+                credit=70;
+                break;  
+             
+            case 'Premier' :
+                plan="Premier";
+                amount=50;
+                credit=150;
+                break;  
+
+             default :  
+                 return res.status(400).json({success:false,message:"Invalid Plan Selected"});
+
+
+
+
+        }
+
+        date=Date.now()
+
+        const transactionData={
+            userId,
+            plan,
+            amount,
+            credit,
+            date
+        }
+
+        const newTransaction=new transactionModel(transactionData);
+        await newTransaction.save();
+
+        const options={
+            amount:amount*100,
+            currency:process.env.CURRENCY,
+            receipt:`${userId}#${newTransaction._id}#${date}`
+             
+        }
+
+        await razorpayInstance.orders.create(options,(err,order)=>{
+            if(err){
+                console.log(err);
+                return res.status(500).json({success:false,message:"Error in creating order"});
+            }
+
+            res.status(200).json({success:true,message:"Order created successfully",data:{order,plan,amount,credit}});
+        });
+
+
+
+
+
+
+
 
 
 
     }
 
     catch(error){
+        console.log(error);
+        res.status(500).json({success:false,message:"Error in Payment"});
 
+    }
+
+}
+
+const verifyRazorpay=async (req,res)=>{ 
+    try{
+
+        const {razorpay_order_id}=req.body;
+        const orderInfo=await razorpayInstance.orders.fetch(razorpay_order_id);     
+
+        if(orderInfo.status!=="paid"){
+            return res.status(400).json({success:false,message:"Payment not successful"});
+        }
+
+        
     }
 }
 
