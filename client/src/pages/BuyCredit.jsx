@@ -1,7 +1,27 @@
 import React from 'react'
 import { assets, plans } from '../assets/assets'
+import { AppContext } from '../context/AppContext'
+import { useContext } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+
 
 const BuyCredit = () => {
+
+  const {user, setShowLogin,token,backendUrl,loadCreditsData} = useContext(AppContext)
+
+  const navigate = useNavigate()
+
+  const initpay=async (order)=>{
+    
+  }
+
+
+
+
+
+
+
   return (
     <div className="flex flex-col items-center pt-15 py-35 px-4 sm:px-8 lg:px-16 bg-gradient-to-b from-gray-900 via-gray-500 to-gray-200 text-gray-600">
       {/* Section Header */}

@@ -11,12 +11,10 @@ const AppContextProvider = (props) => {
   const [token, setToken] = useState(localStorage.getItem("token") || "");
   const [credit, setCredit] = useState(0);
 
-  const backendUrl =
-    import.meta.env.VITE_BACKEND_URL ;
-
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
   const navigate = useNavigate();
 
-
+  // ✅ Load user credits + info
   const loadCreditsData = async () => {
     try {
       const { data } = await axios.get(backendUrl + "/api/users/credits", {
@@ -28,7 +26,7 @@ const AppContextProvider = (props) => {
         setUser(data.user);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       toast.error(error?.response?.data?.message || error.message);
     }
   };
@@ -44,15 +42,15 @@ const AppContextProvider = (props) => {
 
       if (data.success) {
         await loadCreditsData();
-        return data.resultImage;
+        return data.resultImage; // base64 string
       } else {
         toast.error(data.message);
         await loadCreditsData();
 
-        if (data.creditBalance === 0) {
+        if (data.credit === 0) {  // ⚡️ must match backend
           navigate("/buy");
         }
-        return null; // always return something
+        return null;
       }
     } catch (error) {
       toast.error(error?.response?.data?.message || error.message);

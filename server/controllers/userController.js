@@ -96,7 +96,7 @@ const loginUser=async (req,res)=>{
 
 const creditUser = async (req, res) => {
   try {
-    const userId = req.body.userId; // set by auth middleware
+    const userId = req.userId; // <-- set in middleware, not req.body
 
     const User = await userModel.findById(userId);
 
@@ -108,13 +108,14 @@ const creditUser = async (req, res) => {
       success: true,
       message: "User data fetched successfully",
       credits: User.credit,
-      user: { name: User.name, email: User.email }
+      user: { name: User.name, email: User.email },
     });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: "Error in fetching user credits" });
   }
 };
+
 
 
 
