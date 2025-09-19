@@ -92,32 +92,29 @@ const loginUser=async (req,res)=>{
     
     }
 
-const creditUser=async (req,res)=>{
-    try{
-        const {Userid}=req.body;  
-        
-        const User=await userModel.findById(Userid);
+const creditUser = async (req, res) => {
+  try {
+    const userId = req.body.userId; // set by auth middleware
 
-        if(!User){
-            return res.json({success:false,message:"User not found"});
-        }
+    const User = await userModel.findById(userId);
 
-
-
-        res.json({success:true,message:"User Credited Successfully",credits:User.credit,  user:{name:User.name}});
-
-
-     }
-
-        catch(error){
-        console.log(error);
-        res.status(500).json({success:false,message:"Error in Crediting User"});   
-        }     
-    
-    
-    
-    
+    if (!User) {
+      return res.json({ success: false, message: "User not found" });
     }
+
+    res.json({
+      success: true,
+      message: "User data fetched successfully",
+      credits: User.credit,
+      user: { name: User.name, email: User.email }
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: "Error in fetching user credits" });
+  }
+};
+
+
 
 
 export {registerUser,loginUser,creditUser};

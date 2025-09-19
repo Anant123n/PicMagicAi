@@ -12,14 +12,14 @@ const AppContextProvider = (props) => {
   const [credit, setCredit] = useState(0);
 
   const backendUrl =
-    import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+    import.meta.env.VITE_BACKEND_URL ;
 
   const navigate = useNavigate();
 
 
   const loadCreditsData = async () => {
     try {
-      const { data } = await axios.get(backendUrl + "/api/user/credits", {
+      const { data } = await axios.get(backendUrl + "/api/users/credits", {
         headers: { token },
       });
 

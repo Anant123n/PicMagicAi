@@ -1,21 +1,27 @@
-import React, { useState } from 'react'
- 
+import React, { useState, useContext } from 'react'
+import { AppContext } from '../context/AppContext'
 
 const Result = () => {
-  const [image, setImage] = useState('bachha.png')
+  const [image, setImage] = useState(null)
   const [isImgLoaded, setIsImgLoaded] = useState(false)
   const [loading, setLoading] = useState(false)
   const [input, setInput] = useState('')
 
-  const generateImage = async (e) => {
+  const { generateImage } = useContext(AppContext)  // ✅ use function from context
+
+  const handleGenerate = async (e) => {
     e.preventDefault()
     setLoading(true)
 
-    // Simulate backend call for now
     if (input) {
-      if (image) {
-        setIsImgLoaded(true)
-        setImage(image)
+      try {
+        const result = await generateImage(input)   // ✅ call context fn
+        if (result) {
+          setImage(result)   // should be base64 string returned from backend
+          setIsImgLoaded(true)
+        }
+      } catch (err) {
+        console.error(err)
       }
     }
 
@@ -24,13 +30,16 @@ const Result = () => {
 
   return (
     <form
-      onSubmit={generateImage}
+      onSubmit={handleGenerate}
       className="flex flex-col min-h-[90vh] justify-center items-center gap-6 px-2 sm:px-8 lg:px-16"
     >
       {/* Image Display */}
       <div className="relative">
-        <img src={image} alt="Generated" className="max-w-sm rounded shadow-lg" />
-        {/* Progress Bar */}
+        <img
+          src={image || 'bachha.png'}
+          alt="Generated"
+          className="max-w-sm rounded shadow-lg"
+        />
         <span
           className={`absolute bottom-0 left-0 h-1 bg-pink-600 ${
             loading ? 'w-full transition-all duration-[10s]' : 'w-0'
@@ -62,7 +71,11 @@ const Result = () => {
       {isImgLoaded && (
         <div className="flex gap-4 flex-wrap justify-center text-sm mt-6">
           <p
-            onClick={() => setIsImgLoaded(false)}
+            onClick={() => {
+              setIsImgLoaded(false)
+              setImage(null)
+              setInput('')
+            }}
             className="cursor-pointer bg-transparent border border-gray-400 text-gray-200 px-8 py-3 rounded-full hover:bg-gray-700 transition"
           >
             Generate Another

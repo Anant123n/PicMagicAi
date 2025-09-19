@@ -1,4 +1,16 @@
-
+// Copyright 2025 PREM
+// 
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// 
+//     https://www.apache.org/licenses/LICENSE-2.0
+// 
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 import React, { useContext, useEffect, useState } from 'react'
 import { assets } from '../assets/assets'
@@ -21,28 +33,28 @@ const Login = () => {
         e.preventDefault();
 
         try {
-            
+
             if (state === 'Login') {
-                const {data} = await axios.post(backendUrl + '/api/user/login', {email, password})
-
+                const { data } = await axios.post(backendUrl + '/api/users/login', { email, password })
+                console.log("Login response:", data)
                 if (data.success) {
-                    setToken(data.token)
-                    setUser(data.user)
-                    localStorage.setItem('token', data.token)
+                    setToken(data.data.token)
+                    setUser(data.data.user)
+                    localStorage.setItem('token', data.data.token)
                     setShowLogin(false)
-                }else{
-                  toast.error(data.message)
+                } else {
+                    toast.error(data.message)
                 }
-            }else{
-                const {data} = await axios.post(backendUrl + '/api/user/register', {name, email, password})
-
+            } else {
+                const { data } = await axios.post(backendUrl + '/api/users/register', { name, email, password })
+                console.log("Register response:", data)
                 if (data.success) {
-                    setToken(data.token)
-                    setUser(data.user)
-                    localStorage.setItem('token', data.token)
+                    setToken(data.data.token)
+                    setUser(data.data.user)
+                    localStorage.setItem('token', data.data.token)
                     setShowLogin(false)
-                }else{
-                  toast.error(data.message)
+                } else {
+                    toast.error(data.message)
                 }
             }
 
@@ -51,13 +63,13 @@ const Login = () => {
         }
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         document.body.style.overflow = 'hidden';
 
-        return ()=>{
-            document.body.style.overflow = 'unset';  
+        return () => {
+            document.body.style.overflow = 'unset';
         }
-    },[])
+    }, [])
   return (
     <div className='fixed top-0 left-0 right-0 bottom-0 z-10 backdrop-blur-sm bg-black/30 flex justify-center items-center'>
         <motion.form onSubmit={onSubmitHandler}

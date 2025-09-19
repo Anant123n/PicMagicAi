@@ -7,7 +7,11 @@ import Steps from './Steps'
 import Testimonial from './Testimonial'
 import Discription from './Discription'
 
+import { AppContext } from '../context/AppContext'
+
 const Header = () => {
+
+  const { user, setShowLogin } = useContext(AppContext)
 
   const navigate = useNavigate()
 
