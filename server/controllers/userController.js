@@ -115,6 +115,35 @@ const creditUser = async (req, res) => {
 };
 
 
+const razorpayInstance= new razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
+
+
+});
+
+
+const paymentRazorpay=async (req,res)=>{
+    try {
+        const {userId,planId}=req.body;
+        const userData=await userModel.findById(userId);    
+
+        if(!userData){
+            return res.status(404).json({success:false,message:"User not found"});
+        }
+
+        
+
+
+
+    }
+
+    catch(error){
+
+    }
+}
+
+
 
 
 export {registerUser,loginUser,creditUser};
