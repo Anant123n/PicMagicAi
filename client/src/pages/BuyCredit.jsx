@@ -3,6 +3,7 @@ import { assets, plans } from '../assets/assets'
 import { AppContext } from '../context/AppContext'
 import { useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
 
 
 
@@ -13,8 +14,42 @@ const BuyCredit = () => {
   const navigate = useNavigate()
 
   const initpay=async (order)=>{
-    
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY, // Enter the Key ID generated from the Dashboard
+      amount: order.amount,
+      currency: order.currency,
+      name: "credit payment",
+      description: "credits Transaction",
+      order_id: order.id,
+      receipt : order.receipt,
+      handler: async function (response) {
+
+        try {
+          const { data } = await axios.post(backendUrl + '/api/users/verify-razor', {  ...response },{ headers: { token } })
+          if(data.success){
+            await loadCreditsData()
+            navigate('/')
+            toast.success("Credits added successfully")
+
+          }
+
+          
+
+
+        }
+        catch(error){
+          toast.error("Payment verification failed")
+
+        }
+      }
+    }
+
   }
+
+  const rzp=new Razorpay(options);
+  rzp.open();
+
+
 
 
 
