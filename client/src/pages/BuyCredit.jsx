@@ -13,6 +13,7 @@ const BuyCredit = () => {
 
   const navigate = useNavigate()
 
+
   const initpay=async (order)=>{
     const options = {
       key: import.meta.env.VITE_RAZORPAY_KEY, // Enter the Key ID generated from the Dashboard
@@ -43,11 +44,33 @@ const BuyCredit = () => {
         }
       }
     }
+    const rzp1 = new Razorpay(options);
+    rzp1.open();
+  
+  }
+  
 
+  const paymentRazorpay = async(planId) => {
+    try {
+      if(!user){
+        setShowLogin(true)
+        return
+      }
+      const { data } = await axios.post(backendUrl + '/api/users/pay-razor', { planId },{ headers: { token } })
+      if(data.success){
+        initpay(data.order)
+      }
+      else{
+        toast.error(data.message)
+      }
+
+    }
+    catch(error){
+      toast.error("Payment initiation failed")
+    }
   }
 
-  const rzp=new Razorpay(options);
-  rzp.open();
+  
 
 
 
@@ -88,7 +111,7 @@ const BuyCredit = () => {
               <span className="text-gray-300 text-base"> / {item.credits} credits</span>
             </div>
 
-            <button className="w-full bg-amber-500 text-black font-medium px-6 py-3 rounded-full hover:bg-amber-600 transition">
+            <button onClick={()=>paymentRazorpay(item.id) } className="w-full bg-amber-500 text-black font-medium px-6 py-3 rounded-full hover:bg-amber-600 transition">
               Buy Now
             </button>
           </div>
