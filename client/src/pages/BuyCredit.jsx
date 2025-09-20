@@ -4,6 +4,7 @@ import { AppContext } from '../context/AppContext'
 import { useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { toast } from 'react-toastify'
 
 
 
@@ -26,7 +27,7 @@ const BuyCredit = () => {
       handler: async function (response) {
 
         try {
-          const { data } = await axios.post(backendUrl + '/api/users/verify-razor', {  ...response },{ headers: { token } })
+          const { data } = await axios.post(backendUrl + '/api/users/verify-razor', {... response },{ headers: { token } })
           if(data.success){
             await loadCreditsData()
             navigate('/')
@@ -48,7 +49,7 @@ const BuyCredit = () => {
     rzp1.open();
   
   }
-  
+
 
   const paymentRazorpay = async(planId) => {
     try {
