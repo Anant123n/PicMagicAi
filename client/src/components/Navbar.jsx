@@ -1,24 +1,21 @@
-// Copyright 2025 PREM
-// Licensed under the Apache License, Version 2.0
-
-import React, { useContext } from 'react'
-import { assets } from '../assets/assets'
-import { Link, useNavigate } from 'react-router-dom'
-import { AppContext } from '../context/AppContext'
+import React, { useContext , useEffect} from 'react';
+import { assets } from '../assets/assets';
+import { Link, useNavigate } from 'react-router-dom';
+import { AppContext } from '../context/AppContext';
 
 const Navbar = () => {
-  const { user, setShowLogin, logout, credit } = useContext(AppContext)
-  const navigate = useNavigate()
+  const { user, setShowLogin, logout, credit , loadCreditsData,token } = useContext(AppContext); // ✅ removed stray comma
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (token) loadCreditsData();
+  }, [token]); 
 
   return (
     <div className="flex justify-between items-center px-2 sm:px-8 lg:px-16 bg-[#111827] text-white w-full h-auto py-4">
       {/* Logo */}
       <Link to="/">
-        <img
-          src={assets.logo}
-          alt="Logo"
-          className="w-28 sm:w-32 lg:w-40"
-        />
+        <img src={assets.logo} alt="Logo" className="w-28 sm:w-32 lg:w-40" />
       </Link>
 
       {/* Right side */}
@@ -31,7 +28,7 @@ const Navbar = () => {
               className="flex items-center gap-2 bg-blue-100 text-gray-800 px-4 py-2 rounded-full hover:scale-105 transition-all duration-500"
             >
               <img src={assets.credit_star} alt="" className="w-5" />
-              <p>Credits Left : {credit}</p>
+              <p>Credits Left: {credit}</p>
             </button>
 
             {/* Greeting */}
@@ -74,7 +71,7 @@ const Navbar = () => {
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;

@@ -9,33 +9,47 @@ const AppContextProvider = (props) => {
   const [user, setUser] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
   const [token, setToken] = useState(localStorage.getItem("token") || "");
-  const [credit, setCredit] = useState(0);
+  const [credit, setCredit] = useState(0); // ✅ consistent naming
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
   const navigate = useNavigate();
 
   // ✅ Load user credits + info
-  const loadCreditsData = async () => {
-    try {
-      const { data } = await axios.get(backendUrl + "/api/users/credits", {
-        headers: { token },
-      });
+const loadCreditsData = async () => {
+  if (!token) return;
+  try {
+    const { data } = await axios.get(`${backendUrl}/api/users/credits`, {
+      headers: { token },
+    });
 
-      if (data.success) {
-        setCredit(data.credits);
-        setUser(data.user);
+    console.log("Credits API response:", data);
+
+    if (data.success) {
+      setCredit(data.credits ?? data.credit ?? 0);
+      setUser(data.user ?? null);
+    } else {
+      // if backend returns token issue
+      if (data.message?.toLowerCase().includes("not authorized") || 
+          data.message?.toLowerCase().includes("invalid")) {
+        logout();
+        toast.error("Session expired, please login again.");
+      } else {
+        toast.error(data.message);
       }
-    } catch (error) {
-      console.error(error);
-      toast.error(error?.response?.data?.message || error.message);
     }
-  };
+  } catch (error) {
+    console.error(error.response?.data || error);
+    toast.error(error?.response?.data?.message || error.message);
+  }
+};
+
+
 
   // ✅ Generate image
   const generateImage = async (prompt) => {
     try {
       const { data } = await axios.post(
-        backendUrl + "/api/image/generate-image",
+        `${backendUrl}/api/image/generate-image`,
         { prompt },
         { headers: { token } }
       );
@@ -47,7 +61,7 @@ const AppContextProvider = (props) => {
         toast.error(data.message);
         await loadCreditsData();
 
-        if (data.credit === 0) {  // ⚡️ must match backend
+        if ((data.credits ?? data.credit ?? 0) === 0) {
           navigate("/buy");
         }
         return null;
@@ -62,6 +76,7 @@ const AppContextProvider = (props) => {
     localStorage.removeItem("token");
     setToken("");
     setUser(null);
+    setCredit(0);
   };
 
   useEffect(() => {
@@ -86,7 +101,9 @@ const AppContextProvider = (props) => {
   };
 
   return (
-    <AppContext.Provider value={value}>{props.children}</AppContext.Provider>
+    <AppContext.Provider value={value}>
+      {props.children}
+    </AppContext.Provider>
   );
 };
 

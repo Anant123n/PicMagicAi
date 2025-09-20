@@ -6,9 +6,8 @@ export const generateImage = async (req, res) => {
   try {
     const { prompt } = req.body;
 
-    // ✅ get userId from auth middleware
+    // Get userId from auth middleware
     const user = await userModel.findById(req.userId);
-
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
@@ -17,28 +16,28 @@ export const generateImage = async (req, res) => {
       return res.json({ success: false, message: "Insufficient Credits. Please Recharge." });
     }
 
-    // ✅ prepare form-data
+    // Prepare form-data
     const formData = new FormData();
     formData.append("prompt", prompt);
 
-    // ✅ axios call with correct config
-    const { data } = await axios.post(
-      'https://clipdrop-api.co/cleanup/v1', // (replace with correct endpoint if it's /cleanup/v1)
+    // ✅ Use correct ClipDrop endpoint
+    const response = await axios.post(
+      "https://clipdrop-api.co/text-to-image/v1",
       formData,
       {
         headers: {
-          "x-api-key": process.env.API_KEY,
+          "x-api-key": process.env.api_key,
           ...formData.getHeaders(),
         },
-        responseType: "arraybuffer",
+        responseType: "arraybuffer", // important to get image data
       }
     );
 
-    // ✅ convert to base64
-    const base64Image = Buffer.from(data, "binary").toString("base64");
+    // Convert to base64
+    const base64Image = Buffer.from(response.data, "binary").toString("base64");
     const resultImage = `data:image/png;base64,${base64Image}`;
 
-    // ✅ deduct 1 credit
+    // Deduct 1 credit
     user.credit -= 1;
     await user.save();
 

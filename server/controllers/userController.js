@@ -5,99 +5,72 @@ import validator from "validator";
 import transactionModel from "../models/TransactionModel.js";
 import Razorpay from "razorpay";
 
-// Register User
-
-const registerUser=async (req, res) => {    
-
-    try{
-        const {name,email,password}=req.body;
-
-        if(!name || !email || !password){
-            return res.status(400).json({success:false,message:"Please Enter all the Fields"});
-        }
 
 
-        if(!validator.isEmail(email)){                  
-            return res.status(400).json({success:false,message:"Please Enter a valid Email"});
-        }
+// REGISTER
+const registerUser = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
 
-        if(!validator.isStrongPassword(password)){
-            return res.status(400).json({success:false,message:"Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one symbol."});
-        }
+    if (!name || !email || !password)
+      return res.status(400).json({ success: false, message: "Please enter all the fields" });
 
-        if(password.length<8){
-            return res.status(400).json({success:false,message:"Password must be at least b characters long"});
-        }
+    if (!validator.isEmail(email))
+      return res.status(400).json({ success: false, message: "Please enter a valid email" });
 
-        //
+    const existingUser = await userModel.findOne({ email });
+    if (existingUser)
+      return res.status(400).json({ success: false, message: "Email already registered" });
 
-        const salt=await bcrypt.genSalt(10);
-        const hashedPassword=await bcrypt.hash(password,salt);
-        
-        const userData={
-            name,
-            email,
-            password:hashedPassword
-        }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await userModel.create({ name, email, password: hashedPassword });
 
-        const user=new userModel(userData); 
-        await user.save();
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
-        const token=jwt.sign({id:user._id},process.env.JWT_SECRET);
+    res.status(201).json({
+      success: true,
+      message: "User registered successfully",
+      token,
+      user: { id: user._id, name: user.name, email: user.email, credit: user.credit },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Error in registering user" });
+  }
+};
 
-        res.status(201).json({success:true,message:"User Registered Successfully",data:{user,token}});
+// LOGIN
+const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password)
+      return res.status(400).json({ success: false, message: "Please enter all the fields" });
 
-        
+    const user = await userModel.findOne({ email });
+    if (!user) return res.status(400).json({ success: false, message: "User not found" });
 
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ success: false, message: "Invalid credentials" });
 
-    }
-    catch(error){
-        console.log(error);
-        res.status(500).json({success:false,message:"Error in Registering User"});
-    }
-}
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
-const loginUser=async (req,res)=>{
-    try{
-        const {email,password}=req.body;
-
-        if(!email || !password){
-            return res.status(400).json({success:false,message:"Please Enter all the Fields"});
-        }
-
-        const user=await userModel.findOne({email});
-
-        if(!user){
-            return res.status(400).json({success:false,message:"User not found"});
-        }
-
-        const isPasswordMatch=await bcrypt.compare(password,user.password);
-        
-        if(!isPasswordMatch){
-            return res.status(400).json({success:false,message:"Invalid Credentials"});
-        }   
-
-        const token=jwt.sign({id:user._id},process.env.JWT_SECRET);
-        res.status(200).json({success:true,message:"User Logged In Successfully",data:{user,token}});
-    
-    }
-    catch(error){
-        console.log(error);
-        res.status(500).json({success:false,message:"Error in Logging In"});
+    res.status(200).json({
+      success: true,
+      message: "User logged in successfully",
+      token,
+      user: { id: user._id, name: user.name, email: user.email, credit: user.credit },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Error in logging in" });
+  }
+};
 
 
-    }
-    
-    
-    
-    
-    
-    }
-
+// Get User Credits
 const creditUser = async (req, res) => {
   try {
-    const userId = req.userId; // <-- set in middleware, not req.body
-
+    const userId = req.userId; // ✅ set by middleware
     const User = await userModel.findById(userId);
 
     if (!User) {
@@ -108,7 +81,7 @@ const creditUser = async (req, res) => {
       success: true,
       message: "User data fetched successfully",
       credits: User.credit,
-      user: { name: User.name, email: User.email },
+      user: { id: User._id, name: User.name, email: User.email },
     });
   } catch (error) {
     console.log(error);
@@ -123,17 +96,19 @@ const creditUser = async (req, res) => {
 
 
 
+// Razorpay Instance
 const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// ✅ Create Order
+// Create Order
 const paymentRazorpay = async (req, res) => {
   try {
-    const { userId, planId } = req.body;
-    const userData = await userModel.findById(userId);
+    const userId = req.userId; // ✅ safer
+    const { planId } = req.body;
 
+    const userData = await userModel.findById(userId);
     if (!userData) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
@@ -146,36 +121,31 @@ const paymentRazorpay = async (req, res) => {
         amount = 10;
         credit = 15;
         break;
-
       case "Advanced":
         plan = "Advanced";
         amount = 30;
         credit = 70;
         break;
-
       case "Premier":
         plan = "Premier";
         amount = 50;
         credit = 150;
         break;
-
       default:
         return res.status(400).json({ success: false, message: "Invalid Plan Selected" });
     }
 
     const date = Date.now();
 
-    // 1️⃣ Create Razorpay Order
     const options = {
       amount: amount * 100,
       currency: process.env.CURRENCY || "INR",
-      receipt: `${userId}#${date}`, // keep it clean, no transactionId yet
+      receipt: `${userId}#${date}`,
     };
 
     const order = await razorpayInstance.orders.create(options);
 
-    // 2️⃣ Save Transaction in DB
-    const transactionData = {
+    const transactionData = new transactionModel({
       userId,
       plan,
       amount,
@@ -183,10 +153,8 @@ const paymentRazorpay = async (req, res) => {
       date,
       orderId: order.id,
       payment: false,
-    };
-
-    const newTransaction = new transactionModel(transactionData);
-    await newTransaction.save();
+    });
+    await transactionData.save();
 
     res.status(200).json({
       success: true,
@@ -199,7 +167,7 @@ const paymentRazorpay = async (req, res) => {
   }
 };
 
-// ✅ Verify Payment
+// Verify Payment
 const verifyRazorpay = async (req, res) => {
   try {
     const { razorpay_order_id } = req.body;
@@ -209,9 +177,7 @@ const verifyRazorpay = async (req, res) => {
       return res.status(400).json({ success: false, message: "Payment not successful" });
     }
 
-    // Find transaction with orderId
     const transactionData = await transactionModel.findOne({ orderId: razorpay_order_id });
-
     if (!transactionData) {
       return res.status(404).json({ success: false, message: "Transaction not found" });
     }
@@ -220,7 +186,6 @@ const verifyRazorpay = async (req, res) => {
       return res.status(400).json({ success: false, message: "Payment already verified" });
     }
 
-    // Update user credits
     const userData = await userModel.findById(transactionData.userId);
     const newCredit = userData.credit + transactionData.credit;
 
@@ -234,8 +199,4 @@ const verifyRazorpay = async (req, res) => {
   }
 };
 
-
-
-
-
-export {registerUser,loginUser,creditUser, paymentRazorpay,verifyRazorpay};
+export { registerUser, loginUser, creditUser, paymentRazorpay, verifyRazorpay };
