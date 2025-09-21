@@ -1,15 +1,16 @@
 import mongoose from "mongoose";
 
 const transactionSchema = new mongoose.Schema({
-  userId: { type: String, required: true },   // fixed field name
-  plan: { type: String, required: true },     // removed unique
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  plan: { type: String, required: true }, // 🚫 remove `unique: true`
   amount: { type: Number, required: true },
-  credit: { type: Number, required: true },
-  payment: { type: Boolean, default: false },
-  date: { type: Date, default: Date.now },
-  orderId: { type: String, required: true, unique: true }  // store Razorpay order id
-});
+  orderId: { type: String, required: true },
+  paymentId: { type: String },
+  status: { type: String, default: 'pending' },
+}, { timestamps: true });
 
 const transactionModel = mongoose.models.transaction || mongoose.model('transaction', transactionSchema);
 
 export default transactionModel;
+
+

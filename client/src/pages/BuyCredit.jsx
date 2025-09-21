@@ -1,116 +1,124 @@
-import React from 'react'
-import { assets, plans } from '../assets/assets'
-import { AppContext } from '../context/AppContext'
-import { useContext } from 'react'
-import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
-import { toast } from 'react-toastify'
-
-
+import React, { useContext } from 'react';
+import { assets, plans } from '../assets/assets';
+import { AppContext } from '../context/AppContext';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const BuyCredit = () => {
-
-   const { user, setShowLogin, token, backendUrl, loadCreditsData } = useContext(AppContext);
+  const { user, setShowLogin, token, backendUrl, loadCreditsData } = useContext(AppContext);
   const navigate = useNavigate();
 
-const initpay = (order) => {
-  if (!window.Razorpay) return toast.error("Razorpay SDK not loaded");
+  // Initialize Razorpay payment
+  const initPayment = (order, planName, creditAmount) => {
+    if (!window.Razorpay) {
+      toast.error('Razorpay SDK not loaded');
+      return;
+    }
 
-  const options = {
-    key: import.meta.env.VITE_RAZORPAY_KEY, // must start with VITE_
-    amount: order.amount, // in paise from backend
-    currency: order.currency,
-    name: "Credit Payment",
-    description: `${order.plan} Plan`,
-    order_id: order.id,
-    handler: async (response) => {
-      try {
-        const { data } = await axios.post(
-          `${backendUrl}/api/users/verify-razor`,
-          response,
-          { headers: { token } }
-        );
-        if (data.success) {
-          await loadCreditsData();
-          navigate('/');
-          toast.success("Credits added successfully");
-        } else {
-          toast.error(data.message);
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID, // ✅ Frontend key
+      amount: order.amount,
+      currency: order.currency,
+      name: 'MagicPicAI Credits',
+      description: `${planName} Plan - ${creditAmount} credits`,
+      order_id: order.id,
+      handler: async (response) => {
+        try {
+          const { data } = await axios.post(
+            `${backendUrl}/api/users/verify-razor`,
+            response,
+            { headers: { token } }
+          );
+
+          if (data.success) {
+            await loadCreditsData();
+            navigate('/');
+            toast.success('Credits added successfully!');
+          } else {
+            toast.error(data.message);
+          }
+        } catch (err) {
+          console.error(err);
+          toast.error('Payment verification failed');
         }
-      } catch (err) {
-        toast.error("Payment verification failed");
-      }
-    },
-    theme: { color: "#F472B6" },
+      },
+      theme: { color: '#F472B6' },
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
   };
 
-  const rzp = new window.Razorpay(options);
-  rzp.open();
-};
+  // Call backend to create Razorpay order
+  const handlePayment = async (planId) => {
+    if (!user) return setShowLogin(true);
 
-const paymentRazorpay = async (planId) => {
-  if (!user) return setShowLogin(true);
-  try {
-    const { data } = await axios.post(
-      `${backendUrl}/api/users/pay-razor`,
-      { planId },
-      { headers: { token } }
-    );
-    if (data.success) initpay(data.order);
-    else toast.error(data.message);
-  } catch (err) {
-    toast.error("Payment initiation failed");
-  }
-};
+    try {
+      const { data } = await axios.post(
+        `${backendUrl}/api/users/pay-razor`,
+        { planId },
+        { headers: { token } }
+      );
 
+      if (!data.success) {
+        toast.error(data.message);
+        return;
+      }
 
-
-
-
+      // Correct path to order object
+      const order = data.data.order;
+      initPayment(order, data.data.plan, data.data.credit);
+    } catch (err) {
+      console.error(err);
+      toast.error('Payment initiation failed');
+    }
+  };
 
   return (
     <div className="flex flex-col items-center pt-15 py-35 px-4 sm:px-8 lg:px-16 bg-gradient-to-b from-gray-900 via-gray-500 to-gray-200 text-gray-600">
-      {/* Section Header */}
       <button className="bg-pink-600 text-white px-6 py-2 rounded-full font-medium hover:bg-pink-700 transition mb-4">
         Our Subscription
       </button>
+
       <h1 className="text-3xl font-bold text-amber-400 mb-10 text-center">
         Choose the Subscription
       </h1>
 
-      {/* Plans Container */}
       <div className="flex flex-wrap gap-6 justify-center w-full">
         {plans.map((item, index) => (
           <div
             key={index}
-            className="bg-gray-800 border border-gray-700 rounded-2xl p-6 w-full max-w-1/4 shadow-md hover:scale-105 transition-transform duration-300"
+            className="bg-gray-800 border border-gray-700 rounded-2xl p-6 w-full max-w-[300px] shadow-md hover:scale-105 transition-transform duration-300"
           >
             <img
               src={assets.logo_icon}
               className="h-14 w-14 mx-auto mb-4"
               alt="logo"
             />
+
             <div className="text-xl font-semibold text-pink-400 text-center mb-2">
               {item.id}
             </div>
+
             <div className="text-gray-300 text-center mb-3">{item.desc}</div>
+
             <div className="text-center font-semibold mb-6">
               <span className="text-3xl text-amber-400">₹{item.price}</span>
               <span className="text-gray-300 text-base"> / {item.credits} credits</span>
             </div>
 
-            <button onClick={()=>paymentRazorpay(item.id) } className="w-full bg-amber-500 text-black font-medium px-6 py-3 rounded-full hover:bg-amber-600 transition">
+            <button
+              onClick={() => handlePayment(item.id)}
+              className="w-full bg-amber-500 text-black font-medium px-6 py-3 rounded-full hover:bg-amber-600 transition"
+            >
               Buy Now
             </button>
           </div>
         ))}
       </div>
     </div>
+  );
+};
 
-
-
-
-  )
-}
-
-export default BuyCredit
+export default BuyCredit;

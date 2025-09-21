@@ -3,7 +3,9 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import validator from "validator";
 import transactionModel from "../models/TransactionModel.js";
-import Razorpay from "razorpay";
+
+import Razorpay from 'razorpay';
+
 
 
 
@@ -105,55 +107,45 @@ const razorpayInstance = new Razorpay({
 // Create Order
 const paymentRazorpay = async (req, res) => {
   try {
-    const userId = req.userId; // ✅ safer
+    const userId = req.userId;
     const { planId } = req.body;
+    console.log('User:', userId, 'Plan:', planId);
 
     const userData = await userModel.findById(userId);
-    if (!userData) {
-      return res.status(404).json({ success: false, message: "User not found" });
-    }
+    if (!userData) return res.status(404).json({ success: false, message: "User not found" });
 
     let amount, credit, plan;
-
     switch (planId) {
       case "Basic":
-        plan = "Basic";
-        amount = 10;
-        credit = 15;
-        break;
+        plan = "Basic"; amount = 10; credit = 15; break;
       case "Advanced":
-        plan = "Advanced";
-        amount = 30;
-        credit = 70;
-        break;
+        plan = "Advanced"; amount = 30; credit = 70; break;
       case "Premier":
-        plan = "Premier";
-        amount = 50;
-        credit = 150;
-        break;
+        plan = "Premier"; amount = 50; credit = 150; break;
       default:
         return res.status(400).json({ success: false, message: "Invalid Plan Selected" });
     }
 
     const date = Date.now();
-
     const options = {
       amount: amount * 100,
       currency: process.env.CURRENCY || "INR",
       receipt: `${userId}#${date}`,
     };
 
-    const order = await razorpayInstance.orders.create(options);
+    let order;
+    try {
+      order = await razorpayInstance.orders.create(options);
+      console.log('Razorpay order:', order);
+    } catch (err) {
+      console.error('Razorpay order creation failed:', err);
+      return res.status(500).json({ success: false, message: "Razorpay order creation failed" });
+    }
 
     const transactionData = new transactionModel({
-      userId,
-      plan,
-      amount,
-      credit,
-      date,
-      orderId: order.id,
-      payment: false,
+      userId, plan, amount, credit, date, orderId: order.id, payment: false,
     });
+
     await transactionData.save();
 
     res.status(200).json({
@@ -162,10 +154,11 @@ const paymentRazorpay = async (req, res) => {
       data: { order, plan, amount, credit },
     });
   } catch (error) {
-    console.log(error);
+    console.error('Payment endpoint error:', error);
     res.status(500).json({ success: false, message: "Error in Payment" });
   }
 };
+
 
 // Verify Payment
 const verifyRazorpay = async (req, res) => {

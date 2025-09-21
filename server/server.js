@@ -7,6 +7,9 @@ import imageRoutes from './routes/imageRoutes.js';
 
 
 
+
+
+
 import connectDB from './config/mongodb.js';
 
 const app = express();
@@ -26,6 +29,8 @@ app.get('/', (req, res) => {
 
 app.use('/api/users', userRoutes);
 app.use('/api/image', imageRoutes);
+
+
 
 
 
