@@ -7,9 +7,9 @@ export default function Footer() {
         {/* Logo + Text */}
         <div className="flex items-center space-x-2">
           <img
-            src={assets.logo} // replace with your logo path
+            src="footer_logo.png" // replace with your logo path
             alt="ImageZ Logo"
-            className="w-25 h-25"
+            className="h-27"
           />
           
         </div>

@@ -168,6 +168,7 @@ const verifyRazorpay = async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
+    // Verify signature
     const sign = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSign = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
@@ -180,18 +181,28 @@ const verifyRazorpay = async (req, res) => {
 
     // Find transaction
     const transactionData = await transactionModel.findOne({ orderId: razorpay_order_id });
-    if (!transactionData) return res.status(404).json({ success: false, message: "Transaction not found" });
+    if (!transactionData) 
+      return res.status(404).json({ success: false, message: "Transaction not found" });
 
-    if (transactionData.payment) {
+    if (transactionData.payment) 
       return res.status(400).json({ success: false, message: "Payment already verified" });
+
+    const creditToAdd = Number(transactionData.credit);
+    if (isNaN(creditToAdd)) {
+      return res.status(400).json({ success: false, message: "Invalid credit amount" });
     }
 
-    // Update user credits
-    const userData = await userModel.findById(transactionData.userId);
-    const newCredit = userData.credit + transactionData.credit;
+    // Safely update user credits using $inc
+    await userModel.findByIdAndUpdate(
+      transactionData.userId,
+      { $inc: { credit: creditToAdd } }
+    );
 
-    await userModel.findByIdAndUpdate(transactionData.userId, { credit: newCredit });
-    await transactionModel.findByIdAndUpdate(transactionData._id, { payment: true, paymentId: razorpay_payment_id });
+    // Mark transaction as paid
+    await transactionModel.findByIdAndUpdate(
+      transactionData._id,
+      { payment: true, paymentId: razorpay_payment_id }
+    );
 
     res.json({ success: true, message: "Payment verified successfully" });
   } catch (error) {
@@ -199,6 +210,7 @@ const verifyRazorpay = async (req, res) => {
     res.status(500).json({ success: false, message: "Error verifying payment" });
   }
 };
+
 
 
 export { registerUser, loginUser, creditUser, paymentRazorpay, verifyRazorpay };
