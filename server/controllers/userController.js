@@ -5,6 +5,7 @@ import validator from "validator";
 import transactionModel from "../models/TransactionModel.js";
 
 import Razorpay from 'razorpay';
+import crypto from "crypto";
 
 
 
@@ -160,30 +161,37 @@ const paymentRazorpay = async (req, res) => {
 };
 
 
+
+
 // Verify Payment
 const verifyRazorpay = async (req, res) => {
   try {
-    const { razorpay_order_id } = req.body;
-    const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id);
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
-    if (orderInfo.status !== "paid") {
-      return res.status(400).json({ success: false, message: "Payment not successful" });
+    const sign = razorpay_order_id + "|" + razorpay_payment_id;
+    const expectedSign = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(sign.toString())
+      .digest("hex");
+
+    if (expectedSign !== razorpay_signature) {
+      return res.status(400).json({ success: false, message: "Invalid signature" });
     }
 
+    // Find transaction
     const transactionData = await transactionModel.findOne({ orderId: razorpay_order_id });
-    if (!transactionData) {
-      return res.status(404).json({ success: false, message: "Transaction not found" });
-    }
+    if (!transactionData) return res.status(404).json({ success: false, message: "Transaction not found" });
 
     if (transactionData.payment) {
       return res.status(400).json({ success: false, message: "Payment already verified" });
     }
 
+    // Update user credits
     const userData = await userModel.findById(transactionData.userId);
     const newCredit = userData.credit + transactionData.credit;
 
     await userModel.findByIdAndUpdate(transactionData.userId, { credit: newCredit });
-    await transactionModel.findByIdAndUpdate(transactionData._id, { payment: true });
+    await transactionModel.findByIdAndUpdate(transactionData._id, { payment: true, paymentId: razorpay_payment_id });
 
     res.json({ success: true, message: "Payment verified successfully" });
   } catch (error) {
@@ -191,5 +199,6 @@ const verifyRazorpay = async (req, res) => {
     res.status(500).json({ success: false, message: "Error verifying payment" });
   }
 };
+
 
 export { registerUser, loginUser, creditUser, paymentRazorpay, verifyRazorpay };
