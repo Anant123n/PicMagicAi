@@ -16,7 +16,7 @@ export default function Footer() {
 
         {/* Copyright */}
         <p className="text-gray-600 text-sm mt-4 md:mt-0">
-          Copyright 2025 @ AiCodinghub – All Right Reserved.
+          Copyright 2025 @ Anant – All Right Reserved.
         </p>
 
         {/* Social Icons */}
