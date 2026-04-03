@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 
 const Navbar = () => {
-  const { user, setShowLogin, logout, credit , loadCreditsData,token } = useContext(AppContext); // ✅ removed stray comma
+  const { user, setShowLogin, logout, credit , loadCreditsData,token, hasFreeTrial } = useContext(AppContext); // ✅ removed stray comma
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -55,6 +55,15 @@ const Navbar = () => {
           </div>
         ) : (
           <div className="flex items-center gap-3 sm:gap-6">
+            {/* Free Trial Badge for guests */}
+            {hasFreeTrial && (
+              <span
+                onClick={() => navigate('/result')}
+                className="cursor-pointer hidden sm:flex items-center gap-1 bg-gradient-to-r from-amber-500/20 to-pink-500/20 border border-amber-500/40 text-amber-300 px-4 py-2 rounded-full text-xs font-semibold hover:scale-105 transition-all duration-300"
+              >
+                🎁 1 Free Try
+              </span>
+            )}
             <p
               onClick={() => navigate('/buy')}
               className="cursor-pointer bg-pink-50 px-3 py-2 text-blue-600 rounded-full hover:bg-pink-100"

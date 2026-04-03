@@ -11,7 +11,7 @@ import { AppContext } from '../context/AppContext'
 
 const Header = () => {
 
-  const { user, setShowLogin } = useContext(AppContext)
+  const { user, setShowLogin, hasFreeTrial } = useContext(AppContext)
 
   const navigate = useNavigate()
 
@@ -19,6 +19,9 @@ const Header = () => {
 
   const GenPic = () => {
     if (user) {
+      navigate('/result')
+    } else if (hasFreeTrial) {
+      // Allow guest with free trial to generate without login
       navigate('/result')
     } else {
       setShowLogin(true)
