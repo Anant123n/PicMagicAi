@@ -43,7 +43,7 @@ const Result = () => {
   return (
     <form
       onSubmit={handleGenerate}
-      className="flex flex-col min-h-[90vh] justify-center items-center gap-6 px-2 sm:px-8 lg:px-16 pt-16 sm:pt-24 pb-16"
+      className="flex flex-col min-h-[90vh] justify-center items-center gap-6 px-2 sm:px-8 lg:px-10 pt-10 sm:pt-20 pb-12"
     >
 
       {/* Guest Free Trial Badge */}
