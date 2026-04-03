@@ -11,7 +11,13 @@ const Result = () => {
   const { generateImage, user, hasFreeTrial, setShowLogin, token } = useContext(AppContext)
   const navigate = useNavigate()
 
-
+  // If guest with no free trial left, redirect to home and show login
+  useEffect(() => {
+    if (!token && !hasFreeTrial) {
+      setShowLogin(true)
+      navigate('/')
+    }
+  }, [token, hasFreeTrial])
 
   const handleGenerate = async (e) => {
     e.preventDefault()
@@ -37,7 +43,7 @@ const Result = () => {
   return (
     <form
       onSubmit={handleGenerate}
-      className="flex flex-col min-h-[90vh] justify-center items-center gap-6 px-2 sm:px-8 lg:px-16"
+      className="flex flex-col min-h-[90vh] justify-center items-center gap-6 px-2 sm:px-8 lg:px-16 pt-16 sm:pt-24 pb-16"
     >
 
       {/* Guest Free Trial Badge */}
@@ -56,9 +62,8 @@ const Result = () => {
           className="max-w-sm rounded shadow-lg"
         />
         <span
-          className={`absolute bottom-0 left-0 h-1 bg-pink-600 ${
-            loading ? 'w-full transition-all duration-[10s]' : 'w-0'
-          }`}
+          className={`absolute bottom-0 left-0 h-1 bg-pink-600 ${loading ? 'w-full transition-all duration-[10s]' : 'w-0'
+            }`}
         />
       </div>
       <p className={loading ? 'text-gray-300 mt-2' : 'hidden'}>Generating...</p>
@@ -86,16 +91,19 @@ const Result = () => {
       {isImgLoaded && (
         <div className="flex flex-col items-center gap-6 mt-6">
           <div className="flex gap-4 flex-wrap justify-center text-sm">
-            <p
-              onClick={() => {
-                setIsImgLoaded(false)
-                setImage(null)
-                setInput('')
-              }}
-              className="cursor-pointer bg-transparent border border-gray-400 text-gray-200 px-8 py-3 rounded-full hover:bg-gray-700 transition"
-            >
-              Generate Another
-            </p>
+            {/* Only show "Generate Another" for logged-in users */}
+            {user ? (
+              <p
+                onClick={() => {
+                  setIsImgLoaded(false)
+                  setImage(null)
+                  setInput('')
+                }}
+                className="cursor-pointer bg-transparent border border-gray-400 text-gray-200 px-8 py-3 rounded-full hover:bg-gray-700 transition"
+              >
+                Generate Another
+              </p>
+            ) : null}
             <a
               href={image}
               download
