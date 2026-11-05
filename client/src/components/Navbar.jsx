@@ -31,6 +31,14 @@ const Navbar = () => {
               <p>Credits Left: {credit}</p>
             </button>
 
+            {/* Your Images Link */}
+            <Link 
+              to="/your-images" 
+              className="hidden sm:block text-pink-400 hover:text-pink-300 transition-colors font-semibold"
+            >
+              Your Images
+            </Link>
+
             {/* Greeting */}
             <p className="hidden sm:block">Hi, {user.name}</p>
 

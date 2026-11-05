@@ -3,6 +3,7 @@ import {Routes,Route} from  'react-router-dom'
 import Home from './pages/Home.jsx'
 import BuyCredit from './pages/BuyCredit.jsx'
 import Result from './pages/Result.jsx' 
+import YourImages from './pages/YourImages.jsx'
 import Footer from './components/Footer.jsx'
 import Navbar from './components/Navbar.jsx'
 import Login from './components/Login.jsx'
@@ -27,8 +28,7 @@ function App() {
       <Route path='/buy' element={<BuyCredit/>}/>
       <Route path='/result' element={<Result/>}/>
       <Route path='/login' element={<Login/>}/>
-      
-
+      <Route path='/your-images' element={<YourImages/>}/>
 
     </Routes>
 
